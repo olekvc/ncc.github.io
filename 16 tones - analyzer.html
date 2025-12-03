@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Level 1 - Tone Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div id="app" class="p-8"></div>
+
+    <script>
+        const texts = [
+            {
+                id: 1,
+                tone: "Humorous",
+                text: "I've decided my relationship with exercise is 'complicated'. We see each other occasionally, mostly by accident when I'm running late for the bus. My fitness tracker keeps sending me motivational messages, but I think it's given up on me. Yesterday it just said 'Really?' when I logged my steps."
+            },
+            {
+                id: 2,
+                tone: "Serious",
+                text: "The housing crisis in urban areas has reached a critical point. Average rental prices have increased by 40% over the past five years, while wages have remained relatively stagnant. Young professionals are being forced to either live in shared accommodation well into their thirties or relocate to distant suburbs with lengthy commutes."
+            },
+            {
+                id: 3,
+                tone: "Friendly",
+                text: "Hi Sarah! Just wanted to reach out and say welcome to the team. We're all really excited to have you on board. If you need anything at all during your first few weeks, please don't hesitate to ask. I remember how overwhelming the first days can be, so I'm here to help however I can. Looking forward to working with you!"
+            },
+            {
+                id: 4,
+                tone: "Formal",
+                text: "Following our telephone conversation this morning, I am writing to confirm the arrangements for next week's meeting. The session will take place on Thursday, 14th March, at 10:30 a.m. in Conference Room B. Please could you confirm your attendance by replying to this message."
+            },
+            {
+                id: 5,
+                tone: "Worried",
+                text: "I'm getting increasingly concerned about the Wilson project. We're now three weeks behind schedule, and the client is starting to ask difficult questions. The development team is working overtime, but we keep discovering new technical issues. I'm worried we might need to have an honest conversation with the client about extending the deadline."
+            },
+            {
+                id: 6,
+                tone: "Informal",
+                text: "Hey! Long time no see! How've you been? I was just thinking about that crazy trip we took to Edinburgh last summer. Remember when we got completely lost trying to find that restaurant? Anyway, we should definitely catch up soon. Fancy grabbing coffee next week sometime?"
+            },
+            {
+                id: 7,
+                tone: "Enthusiastic",
+                text: "I'm absolutely thrilled to share some incredible news! Our research team has just achieved a major breakthrough in renewable energy storage. The new battery prototype we've been developing has exceeded all our expectations, showing a 300% improvement in capacity. This could genuinely transform the entire industry!"
+            },
+            {
+                id: 8,
+                tone: "Sarcastic",
+                text: "Oh wonderful, another 'essential' training session on how to use email. Because apparently, after twenty years of working in an office, I still haven't quite mastered the art of clicking 'reply'. I'm sure these three hours will be absolutely riveting. Can't wait to learn how to attach a file for the hundredth time."
+            },
+            {
+                id: 9,
+                tone: "Formal",
+                text: "I am writing to express my dissatisfaction with the service I received at your establishment on 15th November. Despite having made a reservation three weeks in advance, our table was not available upon arrival. Furthermore, when we were eventually seated after a forty-minute delay, the quality of the food did not meet the standards one would expect given the prices charged."
+            },
+            {
+                id: 10,
+                tone: "Worried",
+                text: "Hi James, I haven't heard from you in a few days and I'm starting to get a bit concerned. You mentioned you weren't feeling well last week, and now you've missed two team meetings. Is everything okay? If you need anything or just want to talk, I'm here. Please let me know you're alright when you get a chance."
+            },
+            {
+                id: 11,
+                tone: "Humorous",
+                text: "Video conferencing has taught me that I apparently make a lot of weird faces when I'm concentrating. My colleague just sent me a screenshot from today's meeting where I look like I'm trying to solve a complex mathematical equation while also smelling something suspicious. Professional? Absolutely not. Memorable? Unfortunately, yes."
+            },
+            {
+                id: 12,
+                tone: "Enthusiastic",
+                text: "This is the opportunity we've been waiting for! The position offers everything we discussed - international projects, leadership responsibilities, and genuine career progression. The company culture seems fantastic, and the team I met during the interview was incredibly welcoming. I really think this could be the perfect next step. I'm so excited about the possibilities!"
+            },
+            {
+                id: 13,
+                tone: "Sarcastic",
+                text: "So the heating system has broken down again. What a surprise. That's only the fourth time this winter. But don't worry, they've assured us it'll be fixed 'soon' - just like the last three times when it took them two weeks. At least we're getting plenty of practice wearing coats indoors. Very fashionable."
+            },
+            {
+                id: 14,
+                tone: "Serious",
+                text: "The recent data breach has compromised the personal information of approximately 50,000 customers. We take this matter extremely seriously and have immediately implemented additional security measures. All affected individuals will be contacted directly within 48 hours. We are working closely with cybersecurity experts to investigate how this breach occurred and to prevent future incidents."
+            },
+            {
+                id: 15,
+                tone: "Informal",
+                text: "Mate, you're not going to believe what happened today. So I'm sitting in this cafe, right, minding my own business, when this guy walks in with a parrot on his shoulder. An actual parrot! And it kept saying 'No problem' to everything. The whole cafe was trying not to laugh. Honestly, you can't make this stuff up!"
+            },
+            {
+                id: 16,
+                tone: "Friendly",
+                text: "Hey Tom, I just wanted to say you did a brilliant job on that presentation yesterday. I know you were nervous about speaking in front of the board, but you handled it really well. Your confidence has grown so much over the past few months. Keep up the excellent work - you should be really proud of yourself!"
+            }
+        ];
+
+        const toneOptions = [
+            "Formal", "Informal", "Serious", "Enthusiastic", 
+            "Worried", "Humorous", "Friendly", "Sarcastic"
+        ];
+
+        let currentIndex = 0;
+        let selectedTone = '';
+        let score = 0;
+        let answered = false;
+        let showResults = false;
+
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (showResults) {
+                const percentage = Math.round((score / texts.length) * 100);
+                let feedback = '';
+                if (percentage >= 80) {
+                    feedback = "Excellent work! You have a great understanding of tone.";
+                } else if (percentage >= 60) {
+                    feedback = "Good job! Keep practicing to improve your tone recognition.";
+                } else {
+                    feedback = "Keep practicing! Understanding tone takes time and experience.";
+                }
+                
+                app.innerHTML = `
+                    <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
+                        <h2 class="text-3xl font-bold text-center text-indigo-900 mb-6">
+                            Quiz Complete!
+                        </h2>
+                        <div class="text-center mb-8">
+                            <div class="text-6xl font-bold text-indigo-600 mb-4">
+                                ${score}/${texts.length}
+                            </div>
+                            <div class="text-2xl text-gray-700 mb-4">
+                                ${percentage}% Correct
+                            </div>
+                            <div class="text-lg text-gray-600">
+                                ${feedback}
+                            </div>
+                        </div>
+                        <button onclick="restart()" class="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                            🔄 Try Again
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            const currentText = texts[currentIndex];
+            
+            let toneButtonsHTML = '';
+            toneOptions.forEach(tone => {
+                const isSelected = selectedTone === tone;
+                const isCorrect = currentText.tone === tone;
+                const showFeedback = answered && (isSelected || isCorrect);
+                
+                let buttonClass = "p-4 rounded-lg font-medium transition border-2 ";
+                let icon = '';
+                
+                if (!answered) {
+                    buttonClass += "border-gray-300 hover:border-indigo-500 hover:bg-indigo-50 text-gray-700 cursor-pointer";
+                } else if (showFeedback && isCorrect) {
+                    buttonClass += "border-green-500 bg-green-50 text-green-800";
+                    icon = '<span class="text-green-600">✓</span>';
+                } else if (showFeedback && isSelected && !isCorrect) {
+                    buttonClass += "border-red-500 bg-red-50 text-red-800";
+                    icon = '<span class="text-red-600">✗</span>';
+                } else {
+                    buttonClass += "border-gray-300 text-gray-500 opacity-50";
+                }
+                
+                const disabled = answered ? 'disabled' : '';
+                toneButtonsHTML += `
+                    <button onclick="selectTone('${tone}')" ${disabled} class="${buttonClass}">
+                        <div class="flex items-center justify-between">
+                            <span>${tone}</span>
+                            ${icon}
+                        </div>
+                    </button>
+                `;
+            });
+
+            app.innerHTML = `
+                <div class="max-w-3xl mx-auto">
+                    <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h1 class="text-3xl font-bold text-indigo-900">
+                                Level 1 ESOL - Text Tone Analyzer
+                            </h1>
+                            <div class="text-lg font-semibold text-indigo-600">
+                                ${currentIndex + 1}/${texts.length}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <div class="bg-gray-50 border-l-4 border-indigo-500 p-6 rounded-r-lg mb-6">
+                                <p class="text-gray-800 text-lg leading-relaxed">
+                                    ${currentText.text}
+                                </p>
+                            </div>
+                            
+                            <p class="text-gray-700 font-medium mb-4">
+                                What tone is this text written in?
+                            </p>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                ${toneButtonsHTML}
+                            </div>
+                        </div>
+                        
+                        ${answered ? `
+                            <div class="mt-6">
+                                <button onclick="nextText()" class="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                                    ${currentIndex < texts.length - 1 ? 'Next Text' : 'See Results'}
+                                </button>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>Current Score: ${score}/${currentIndex + (answered ? 1 : 0)}</span>
+                                <span>${answered ? '✓ Answered' : 'Select a tone'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectTone(tone) {
+            if (answered) return;
+            
+            selectedTone = tone;
+            answered = true;
+            
+            if (tone === texts[currentIndex].tone) {
+                score++;
+            }
+            
+            render();
+        }
+
+        function nextText() {
+            if (currentIndex < texts.length - 1) {
+                currentIndex++;
+                selectedTone = '';
+                answered = false;
+            } else {
+                showResults = true;
+            }
+            render();
+        }
+
+        function restart() {
+            currentIndex = 0;
+            selectedTone = '';
+            score = 0;
+            answered = false;
+            showResults = false;
+            render();
+        }
+
+        // Initial render
+        render();
+    </script>
+</body>
+</html>

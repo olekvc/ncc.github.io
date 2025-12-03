@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tone Analysis Practice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            padding: 40px;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #06b6d4;
+            padding-bottom: 20px;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header-icon {
+            font-size: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .score-box {
+            text-align: right;
+        }
+        
+        .score-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .score-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #06b6d4;
+        }
+        
+        .mode-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 15px;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn.active {
+            background: #06b6d4;
+            color: white;
+        }
+        
+        .tab-btn.inactive {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .tab-btn.inactive:hover {
+            background: #e5e7eb;
+        }
+        
+        .text-box {
+            background: #f9fafb;
+            border: 2px solid #d1d5db;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            line-height: 1.8;
+            font-size: 18px;
+            color: #333;
+        }
+        
+        .question {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4b5563;
+            margin-bottom: 15px;
+        }
+        
+        .tone-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .tone-btn {
+            padding: 16px;
+            border: 2px solid;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+        
+        .tone-btn:not(.selected):not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .tone-btn:disabled {
+            cursor: not-allowed;
+        }
+        
+        .tone-formal { border-color: #3b82f6; color: #1e40af; }
+        .tone-formal.selected { background: #dbeafe; }
+        
+        .tone-informal { border-color: #10b981; color: #065f46; }
+        .tone-informal.selected { background: #d1fae5; }
+        
+        .tone-humorous { border-color: #f59e0b; color: #92400e; }
+        .tone-humorous.selected { background: #fef3c7; }
+        
+        .tone-serious { border-color: #8b5cf6; color: #5b21b6; }
+        .tone-serious.selected { background: #ede9fe; }
+        
+        .tone-enthusiastic { border-color: #ec4899; color: #9f1239; }
+        .tone-enthusiastic.selected { background: #fce7f3; }
+        
+        .tone-worried { border-color: #ef4444; color: #991b1b; }
+        .tone-worried.selected { background: #fee2e2; }
+        
+        .tone-friendly { border-color: #14b8a6; color: #134e4a; }
+        .tone-friendly.selected { background: #ccfbf1; }
+        
+        .tone-sarcastic { border-color: #f97316; color: #9a3412; }
+        .tone-sarcastic.selected { background: #ffedd5; }
+        
+        .feedback-box {
+            padding: 25px;
+            border-radius: 12px;
+            border: 3px solid;
+            margin-bottom: 20px;
+        }
+        
+        .feedback-box.correct {
+            background: #d1fae5;
+            border-color: #10b981;
+        }
+        
+        .feedback-box.incorrect {
+            background: #fee2e2;
+            border-color: #ef4444;
+        }
+        
+        .feedback-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .feedback-box.correct .feedback-title {
+            color: #065f46;
+        }
+        
+        .feedback-box.incorrect .feedback-title {
+            color: #991b1b;
+        }
+        
+        .feedback-content {
+            color: #4b5563;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .clues-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .clues-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .clues-list {
+            list-style: none;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .clues-list li {
+            margin-bottom: 4px;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #06b6d4;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0891b2;
+            transform: translateY(-2px);
+        }
+        
+        .info-box {
+            background: #dbeafe;
+            border: 2px solid #3b82f6;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box-title {
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 5px;
+        }
+        
+        .info-box-text {
+            font-size: 14px;
+            color: #1e40af;
+        }
+        
+        .highlight-word {
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+        
+        .highlight-word:hover {
+            opacity: 0.8;
+        }
+        
+        .highlight-word.inactive {
+            background: #e5e7eb;
+        }
+        
+        .highlight-blue { background: #bfdbfe; }
+        .highlight-purple { background: #ddd6fe; }
+        .highlight-yellow { background: #fef3c7; }
+        .highlight-green { background: #d1fae5; }
+        .highlight-pink { background: #fce7f3; }
+        .highlight-red { background: #fee2e2; }
+        .highlight-orange { background: #fed7aa; }
+        .highlight-teal { background: #ccfbf1; }
+        
+        .features-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #d1d5db;
+            margin-top: 20px;
+        }
+        
+        .features-title {
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+        
+        .feature-item {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .feature-text {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .feature-type {
+            font-size: 14px;
+            color: #4b5563;
+        }
+        
+        #content {
+            min-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <div class="header-icon">💬</div>
+                <div>
+                    <h1>Tone Analysis</h1>
+                    <div class="subtitle">Learn to identify tone in writing</div>
+                </div>
+            </div>
+            <div class="score-box">
+                <div class="score-label">Score</div>
+                <div class="score-value" id="scoreValue">0/0</div>
+            </div>
+        </div>
+        
+        <div class="mode-tabs">
+            <button class="tab-btn active" onclick="switchMode('identify')" id="identifyTab">
+                Identify Tone
+            </button>
+            <button class="tab-btn inactive" onclick="switchMode('features')" id="featuresTab">
+                Find Tone Clues
+            </button>
+        </div>
+        
+        <div id="content"></div>
+    </div>
+
+    <script>
+        const tones = {
+            'Formal': {
+                color: 'tone-formal',
+                description: 'Professional, polite, and respectful language',
+                clues: ['Complete sentences', 'No contractions', 'Polite phrases', 'Technical vocabulary']
+            },
+            'Informal': {
+                color: 'tone-informal',
+                description: 'Casual, friendly, and relaxed language',
+                clues: ['Contractions', 'Casual words', 'Personal pronouns', 'Everyday language']
+            },
+            'Humorous': {
+                color: 'tone-humorous',
+                description: 'Funny, playful, and entertaining',
+                clues: ['Jokes', 'Wordplay', 'Funny comparisons', 'Exaggeration']
+            },
+            'Serious': {
+                color: 'tone-serious',
+                description: 'Important, thoughtful, and grave',
+                clues: ['Strong words', 'Clear statements', 'Important topics', 'Direct language']
+            },
+            'Enthusiastic': {
+                color: 'tone-enthusiastic',
+                description: 'Excited, positive, and energetic',
+                clues: ['Exclamation marks', 'Positive words', 'Energy', 'Strong emotions']
+            },
+            'Worried': {
+                color: 'tone-worried',
+                description: 'Concerned, anxious, or uncertain',
+                clues: ['Concern words', 'Questions', 'Uncertainty', 'Negative possibilities']
+            },
+            'Friendly': {
+                color: 'tone-friendly',
+                description: 'Warm, welcoming, and kind',
+                clues: ['Kind words', 'Personal connection', 'Warmth', 'Inclusive language']
+            },
+            'Sarcastic': {
+                color: 'tone-sarcastic',
+                description: 'Says the opposite of what is meant',
+                clues: ['Irony', 'Contradiction', 'Mock praise', 'Hidden meaning']
+            }
+        };
+
+        const sampleTexts = [
+            {
+                tone: 'Formal',
+                text: 'Dear Sir or Madam, I am writing to enquire about the position advertised in yesterday\'s newspaper. I have attached my curriculum vitae for your consideration. I would be grateful if you could inform me of the next steps in the application process. I look forward to hearing from you at your earliest convenience. Yours faithfully, James Smith.',
+                features: [
+                    { text: 'Dear Sir or Madam', type: 'Formal greeting', color: 'highlight-blue' },
+                    { text: 'I am writing to enquire', type: 'Formal phrase (no contraction)', color: 'highlight-blue' },
+                    { text: 'curriculum vitae', type: 'Formal/technical term', color: 'highlight-purple' },
+                    { text: 'I would be grateful', type: 'Polite, formal request', color: 'highlight-blue' },
+                    { text: 'at your earliest convenience', type: 'Formal phrase', color: 'highlight-blue' },
+                    { text: 'Yours faithfully', type: 'Formal closing', color: 'highlight-blue' }
+                ]
+            },
+            {
+                tone: 'Informal',
+                text: 'Hey Sarah! How\'s it going? I was thinking we could grab some pizza tonight after class. There\'s that new place downtown that everyone\'s been talking about. Let me know if you\'re free! It\'ll be fun. Can\'t wait to catch up with you. See you later!',
+                features: [
+                    { text: 'Hey', type: 'Casual greeting', color: 'highlight-green' },
+                    { text: 'How\'s it going?', type: 'Informal question with contraction', color: 'highlight-green' },
+                    { text: 'grab some pizza', type: 'Casual expression', color: 'highlight-green' },
+                    { text: 'everyone\'s been', type: 'Contraction', color: 'highlight-green' },
+                    { text: 'Can\'t wait', type: 'Contraction + casual phrase', color: 'highlight-green' },
+                    { text: 'See you later!', type: 'Informal closing', color: 'highlight-green' }
+                ]
+            },
+            {
+                tone: 'Humorous',
+                text: 'My alarm clock and I have a love-hate relationship. It loves to wake me up, and I hate it for doing so! This morning, I hit the snooze button so many times that even my alarm gave up and went back to sleep. I finally dragged myself out of bed looking like a zombie who lost a fight with a pillow. Coffee, where are you when I need you most?',
+                features: [
+                    { text: 'love-hate relationship', type: 'Humorous expression', color: 'highlight-yellow' },
+                    { text: 'It loves to wake me up, and I hate it', type: 'Wordplay/joke', color: 'highlight-yellow' },
+                    { text: 'even my alarm gave up', type: 'Personification (funny)', color: 'highlight-yellow' },
+                    { text: 'looking like a zombie who lost a fight with a pillow', type: 'Funny comparison/exaggeration', color: 'highlight-yellow' },
+                    { text: 'Coffee, where are you', type: 'Humorous personification', color: 'highlight-yellow' }
+                ]
+            },
+            {
+                tone: 'Serious',
+                text: 'Climate change is one of the most critical challenges facing our planet today. Scientists warn that we have less than a decade to take significant action to prevent catastrophic environmental damage. Rising temperatures are causing polar ice to melt at an alarming rate. We must act now to reduce carbon emissions and protect our future. This is not a problem we can ignore.',
+                features: [
+                    { text: 'most critical challenges', type: 'Serious, strong language', color: 'highlight-purple' },
+                    { text: 'Scientists warn', type: 'Authority/seriousness', color: 'highlight-purple' },
+                    { text: 'catastrophic', type: 'Strong, serious word', color: 'highlight-purple' },
+                    { text: 'alarming rate', type: 'Serious concern', color: 'highlight-purple' },
+                    { text: 'We must act now', type: 'Urgent, serious command', color: 'highlight-purple' },
+                    { text: 'not a problem we can ignore', type: 'Direct, serious statement', color: 'highlight-purple' }
+                ]
+            },
+            {
+                tone: 'Enthusiastic',
+                text: 'I can\'t believe we won the championship! This is absolutely incredible! The whole team played amazingly, and the crowd was fantastic! I\'m so proud of everyone! We worked so hard for this moment, and it finally happened! This is the best day ever! I\'m still buzzing with excitement! We did it!',
+                features: [
+                    { text: 'I can\'t believe', type: 'Excitement phrase', color: 'highlight-pink' },
+                    { text: '!', type: 'Multiple exclamation marks', color: 'highlight-pink' },
+                    { text: 'absolutely incredible', type: 'Enthusiastic adjective', color: 'highlight-pink' },
+                    { text: 'amazingly', type: 'Positive, energetic word', color: 'highlight-pink' },
+                    { text: 'so proud', type: 'Strong positive emotion', color: 'highlight-pink' },
+                    { text: 'buzzing with excitement', type: 'High-energy expression', color: 'highlight-pink' }
+                ]
+            },
+            {
+                tone: 'Worried',
+                text: 'I\'m really concerned about the exam tomorrow. What if I forget everything I studied? I\'ve been preparing for weeks, but I still don\'t feel ready. There\'s so much material to remember, and I\'m afraid I might confuse the different theories. What if the questions are harder than I expected? I hope I can do well, but I\'m not sure.',
+                features: [
+                    { text: 'really concerned', type: 'Worry expression', color: 'highlight-red' },
+                    { text: 'What if', type: 'Worried question', color: 'highlight-red' },
+                    { text: 'I\'m afraid', type: 'Fear/anxiety word', color: 'highlight-red' },
+                    { text: 'don\'t feel ready', type: 'Uncertainty/doubt', color: 'highlight-red' },
+                    { text: 'I hope', type: 'Uncertain hope', color: 'highlight-red' },
+                    { text: 'I\'m not sure', type: 'Doubt/uncertainty', color: 'highlight-red' }
+                ]
+            },
+            {
+                tone: 'Friendly',
+                text: 'Welcome to our class! We\'re so happy to have you here with us. Everyone is really nice, and I\'m sure you\'ll fit right in. If you have any questions or need help with anything, please don\'t hesitate to ask. We\'re all here to support each other. Feel free to sit anywhere you like. Looking forward to getting to know you better!',
+                features: [
+                    { text: 'Welcome', type: 'Warm greeting', color: 'highlight-teal' },
+                    { text: 'so happy to have you', type: 'Kind, welcoming phrase', color: 'highlight-teal' },
+                    { text: 'really nice', type: 'Positive, friendly description', color: 'highlight-teal' },
+                    { text: 'please don\'t hesitate', type: 'Helpful, encouraging', color: 'highlight-teal' },
+                    { text: 'support each other', type: 'Caring language', color: 'highlight-teal' },
+                    { text: 'Looking forward to', type: 'Warm, personal connection', color: 'highlight-teal' }
+                ]
+            },
+            {
+                tone: 'Sarcastic',
+                text: 'Oh great, it\'s raining again. What a wonderful surprise! I just love getting soaked on my way to school. And the weather forecast said it would be sunny all week - they\'re always so accurate, aren\'t they? This is exactly how I wanted to start my Monday. Perfect. Just perfect.',
+                features: [
+                    { text: 'Oh great', type: 'Sarcastic opening', color: 'highlight-orange' },
+                    { text: 'What a wonderful surprise!', type: 'Says opposite (not wonderful)', color: 'highlight-orange' },
+                    { text: 'just love', type: 'Means the opposite (hates it)', color: 'highlight-orange' },
+                    { text: 'always so accurate', type: 'Sarcastic praise (means inaccurate)', color: 'highlight-orange' },
+                    { text: 'exactly how I wanted', type: 'Says opposite of truth', color: 'highlight-orange' },
+                    { text: 'Perfect. Just perfect.', type: 'Repetition showing opposite meaning', color: 'highlight-orange' }
+                ]
+            }
+        ];
+
+        let currentMode = 'identify';
+        let currentText = 0;
+        let selectedTone = null;
+        let showFeedback = false;
+        let score = 0;
+        let attempts = 0;
+        let highlightedFeatures = [];
+
+        function switchMode(mode) {
+            currentMode = mode;
+            showFeedback = false;
+            selectedTone = null;
+            highlightedFeatures = [];
+            
+            document.getElementById('identifyTab').className = mode === 'identify' ? 'tab-btn active' : 'tab-btn inactive';
+            document.getElementById('featuresTab').className = mode === 'features' ? 'tab-btn active' : 'tab-btn inactive';
+            
+            render();
+        }
+
+        function selectTone(tone) {
+            if (showFeedback) return;
+            
+            selectedTone = tone;
+            showFeedback = true;
+            attempts++;
+            
+            if (tone === sampleTexts[currentText].tone) {
+                score++;
+            }
+            
+            updateScore();
+            render();
+        }
+
+        function nextText() {
+            currentText = (currentText + 1) % sampleTexts.length;
+            selectedTone = null;
+            showFeedback = false;
+            highlightedFeatures = [];
+            render();
+        }
+
+        function toggleFeature(index) {
+            const idx = highlightedFeatures.indexOf(index);
+            if (idx > -1) {
+                highlightedFeatures.splice(idx, 1);
+            } else {
+                highlightedFeatures.push(index);
+            }
+            render();
+        }
+
+        function updateScore() {
+            document.getElementById('scoreValue').textContent = score + '/' + attempts;
+        }
+
+        function renderIdentifyMode() {
+            const text = sampleTexts[currentText];
+            const isCorrect = selectedTone === text.tone;
+            
+            let html = `
+                <div class="text-box">${text.text}</div>
+                
+                <div class="question">What is the tone of this text?</div>
+                
+                <div class="tone-grid">
+            `;
+            
+            Object.keys(tones).forEach(toneName => {
+                const isSelected = selectedTone === toneName;
+                html += `
+                    <button 
+                        class="tone-btn ${tones[toneName].color} ${isSelected ? 'selected' : ''}"
+                        onclick="selectTone('${toneName}')"
+                        ${showFeedback ? 'disabled' : ''}
+                    >
+                        ${toneName}
+                    </button>
+                `;
+            });
+            
+            html += '</div>';
+            
+            if (showFeedback) {
+                const feedbackClass = isCorrect ? 'correct' : 'incorrect';
+                const feedbackTitle = isCorrect ? '✓ Correct!' : '✗ Not quite!';
+                
+                html += `
+                    <div class="feedback-box ${feedbackClass}">
+                        <div class="feedback-title">${feedbackTitle}</div>
+                        <div class="feedback-content">
+                            The tone is <strong>${text.tone}</strong>. ${tones[text.tone].description}
+                        </div>
+                        <div class="clues-box">
+                            <div class="clues-title">Clues to look for:</div>
+                            <ul class="clues-list">
+                                ${tones[text.tone].clues.map(clue => `<li>• ${clue}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <button class="btn btn-primary" onclick="nextText()" style="margin-top: 15px;">
+                            Next Text →
+                        </button>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function renderFeaturesMode() {
+            const text = sampleTexts[currentText];
+            
+            let html = `
+                <div class="info-box">
+                    <div class="info-box-title">💡 This text has a ${text.tone} tone</div>
+                    <div class="info-box-text">Click on the highlighted words to see what creates this tone!</div>
+                </div>
+                
+                <div class="text-box">
+            `;
+            
+            let textWithHighlights = text.text;
+            let processedText = '';
+            let lastIndex = 0;
+            
+            text.features.forEach((feature, featureIndex) => {
+                const featurePos = textWithHighlights.indexOf(feature.text, lastIndex);
+                if (featurePos !== -1) {
+                    processedText += textWithHighlights.substring(lastIndex, featurePos);
+                    
+                    const isHighlighted = highlightedFeatures.includes(featureIndex);
+                    const highlightClass = isHighlighted ? feature.color : 'inactive';
+                    
+                    processedText += `<span class="highlight-word ${highlightClass}" onclick="toggleFeature(${featureIndex})">${feature.text}</span>`;
+                    
+                    lastIndex = featurePos + feature.text.length;
+                }
+            });
+            
+            processedText += textWithHighlights.substring(lastIndex);
+            
+            html += processedText + '</div>';
+            
+            if (highlightedFeatures.length > 0) {
+                html += '<div class="features-box"><div class="features-title">Selected Features:</div>';
+                
+                highlightedFeatures.forEach(idx => {
+                    const feature = text.features[idx];
+                    html += `
+                        <div class="feature-item ${feature.color}">
+                            <div class="feature-text">"${feature.text}"</div>
+                            <div class="feature-type">→ ${feature.type}</div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+            }
+            
+            html += '<button class="btn btn-primary" onclick="nextText()" style="margin-top: 20px;">Next Text →</button>';
+            
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function render() {
+            if (currentMode === 'identify') {
+                renderIdentifyMode();
+            } else {
+                renderFeaturesMode();
+            }
+        }
+
+        // Initialize
+        render();
+    </script>
+</body>
+</html>
